@@ -1,0 +1,32 @@
+# 统一按 LF 入库：shell 脚本 / Dockerfile 若被 Windows 的 autocrlf 转成 CRLF，
+# 进容器后 bash 会报 "$'\r': command not found"。
+* text=auto eol=lf
+
+*.sh            text eol=lf
+*.bash          text eol=lf
+*.py            text eol=lf
+*.yml           text eol=lf
+*.yaml          text eol=lf
+*.json          text eol=lf
+*.xml           text eol=lf
+*.java          text eol=lf
+*.ts            text eol=lf
+*.vue           text eol=lf
+*.css           text eol=lf
+*.html          text eol=lf
+*.md            text eol=lf
+*.sql           text eol=lf
+*.conf          text eol=lf
+*.cnf           text eol=lf
+Dockerfile      text eol=lf
+
+# 二进制资源不要做换行转换
+*.png           binary
+*.jpg           binary
+*.jpeg          binary
+*.gif           binary
+*.ico           binary
+*.ttf           binary
+*.jar           binary
+*.7z            binary
+*.zip           binary

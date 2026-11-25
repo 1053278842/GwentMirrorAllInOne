@@ -1,0 +1,29 @@
+# ---- 构建产物 ----
+node_modules/
+dist/
+target/
+*.jar
+!.mvn/wrapper/maven-wrapper.jar
+
+# ---- 缓存 ----
+__pycache__/
+*.py[cod]
+.vite/
+.cache/
+
+# ---- 日志与临时文件 ----
+*.log
+*.pid
+build.log
+push.log
+nohup.out
+
+# ---- IDE / 系统 ----
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# ---- 本地环境 ----
+.env
+.env.local

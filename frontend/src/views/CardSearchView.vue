@@ -1,0 +1,214 @@
+<!--
+  卡牌检索栏（顶部）
+  说明：仓库 HEAD 上的 CardSearchView.vue 误把整个 DeckSearchView 页面复制了过来，
+  并且 import 了它自己（<CardSearchView> 嵌套 <CardSearchView>），导致首页顶部
+  无限嵌套渲染、整页元素重叠。这里恢复为提交 710ddc1 中的原始版本——
+  一个「搜索输入框 + 卡牌下拉虚拟列表 + 已选卡牌标记」的检索栏。
+-->
+<template>
+    <div class="SelectCardItemTokenContainer">
+        <el-icon size="20" color="#409EFC" class="is-loading" id="SearchIcon">
+            <Edit />
+        </el-icon>
+        <div class="SelectCardItemToken">
+            <div v-for="(card, index) in selectedCard" :key="index">
+                <div class="CardToken card-data" :data-id="card.id">
+                    <CardView :card="card" :size="'small'"></CardView>
+                    <div class="deleteToken" @click="selectCard(card as Card)">
+                        <div class="deleteIco">
+                            <el-icon size="14" color="#fff">
+                                <Delete />
+                            </el-icon>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <input placeholder="Please input card ids!" v-model="data.search"
+        @click="usrSearchCardBarStatusStore().showed = !usrSearchCardBarStatusStore().showed" @click.stop>
+
+    <div class="CardSearchExtShowContainer" v-show="usrSearchCardBarStatusStore().showed">
+        <div class="SearchCardTypeDivContainer">
+            <div class="TypeTile">
+                <span class="TypeName">卡牌</span>
+                <span class="CardNumber">{{ allCardStore.cardData.length }}</span>
+            </div>
+            <DynamicScroller :items="filteredItems" :min-item-size="54" :emit-update="true" class="scroller ShowList"
+                @update="onUpdate">
+                <template #default="{ item, index, active }">
+                    <ul @click="selectCard(item)">
+                        <DynamicScrollerItem :item="item" :active="active" :size-dependencies="[
+                            item.name,
+                        ]" :data-index="index" :data-active="active" :title="`当前Card索引: ${index}`" class="message">
+                            <CardView :card="item" :size="'small'"></CardView>
+                            <span>{{ item.name }}</span>
+                        </DynamicScrollerItem>
+                    </ul>
+                </template>
+            </DynamicScroller>
+        </div>
+    </div>
+</template>
+
+<script setup lang="ts">
+import { ref, computed } from 'vue';
+import { usrSearchCardBarStatusStore } from '@/stores/status';
+import CardView from './CardView.vue';
+import { useAllCardStore } from '@/stores/AllCards';
+import { useSelectedCardsStore } from '@/stores/UserOperationStore';
+import type { Card } from '@/types/Card';
+
+defineProps({
+  selectCard: {
+    type: Function,
+    required: true,
+  },
+});
+
+useAllCardStore().initCardData()
+const allCardStore = useAllCardStore();
+
+const { selectedCard } = useSelectedCardsStore();
+const allCard = useAllCardStore().cardData;
+
+const data = ref({
+    allCard,
+    search: '',
+    updateParts: { viewStartIdx: 0, viewEndIdx: 0, visibleStartIdx: 0, visibleEndIdx: 0 },
+});
+
+const filteredItems = computed(() => {
+    const { search, allCard } = data.value;
+    if (!search) return allCard;
+    usrSearchCardBarStatusStore().open()
+    const lowerCaseSearch = search.toLowerCase();
+    return allCard.filter((i: Card) => i.name.toLowerCase().includes(lowerCaseSearch));
+});
+
+function onUpdate(viewStartIndex: number, viewEndIndex: number, visibleStartIndex: number, visibleEndIndex: number) {
+    data.value.updateParts.viewStartIdx = viewStartIndex
+    data.value.updateParts.viewEndIdx = viewEndIndex
+    data.value.updateParts.visibleStartIdx = visibleStartIndex
+    data.value.updateParts.visibleEndIdx = visibleEndIndex
+}
+
+</script>
+
+<style scoped>
+#SearchIcon {
+    margin-right: 10px;
+}
+
+input {
+    padding: 25px 20px;
+}
+
+.CardSearchExtShowContainer {
+    background: white;
+    border-radius: 5px;
+    margin-top: 15px;
+    padding: 0px;
+    min-width: 270px;
+    z-index: 1;
+    position: absolute;
+    left: 0px;
+    transform: unset;
+    right: unset;
+    top: calc(100% + 0px);
+    height: auto;
+    overflow: hidden;
+    max-height: 600px;
+    min-height: 200px;
+    display: flex;
+}
+
+.CardSearchExtShowContainer .SearchCardTypeDivContainer {
+    width: 270px;
+    height: 440px;
+    display: flex;
+    flex-direction: column;
+}
+
+.TypeTile {
+    background: rgb(237, 237, 237);
+    padding: 0px 15px;
+    font-size: 14px;
+    font-weight: bold;
+    color: rgb(115, 115, 115);
+    min-height: 40px;
+    display: flex;
+    -webkit-box-align: center;
+    align-items: center;
+}
+
+.CardNumber {
+    font-weight: normal;
+    margin-left: 10px;
+}
+
+.ShowList .message {
+    list-style: none;
+    padding: 5px 20px;
+    min-height: 30px;
+    display: flex;
+}
+
+.ShowList ul {
+    margin: 0;
+    padding-left: 0;
+}
+
+.ShowList .message:hover {
+    background: rgba(219, 219, 219, 0.637);
+}
+
+.ShowList .message span {
+    font-weight: normal;
+    font-size: 14px;
+    color: rgb(125, 125, 125);
+    margin-left: 10px;
+}
+
+.ShowList ul {
+    cursor: pointer;
+}
+
+.SelectCardItemTokenContainer {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+}
+
+.SelectCardItemToken {
+    display: flex;
+    flex-direction: row;
+}
+
+.CardToken {
+    margin-right: 10px;
+    position: relative;
+}
+
+.CardToken:hover .deleteToken {
+    opacity: 1;
+}
+
+.deleteToken {
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+    background-color: brown;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    cursor: pointer;
+}
+
+.deleteIco {
+    position: absolute;
+    top: calc(50% - 10px);
+    left: calc(50% - 7px);
+}
+</style>

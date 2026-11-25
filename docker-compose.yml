@@ -1,0 +1,28 @@
+services:
+  gwent-mirror:
+    image: crpi-jjrtzj5uuz1ioat1.cn-shanghai.personal.cr.aliyuncs.com/liunidie/gwentmirror-all-in-one:1.4.0
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: gwent-mirror
+    restart: unless-stopped
+    ports:
+      - "8080:80"      # 卡组站前端（nginx）
+      - "8081:8081"    # Spring Boot API（直连调试用，前端已通过 /gmapi 反代）
+    environment:
+      TZ: Asia/Shanghai
+      GWENT_DB_NAME: GwentMirror
+      GWENT_DB_USER: gwent
+      GWENT_DB_PASS: gwent123
+      JAVA_OPTS: "-Xms256m -Xmx512m -Dfile.encoding=UTF-8 -Duser.timezone=Asia/Shanghai"
+    volumes:
+      - gwent-mysql-data:/var/lib/mysql   # 想要每次都是干净的样例数据就删掉这行
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1/healthz"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 90s
+
+volumes:
+  gwent-mysql-data:

@@ -1,0 +1,14 @@
+.git
+.gitignore
+**/.git
+**/.git/**
+**/node_modules
+**/__pycache__
+**/dist
+**/target
+desktop
+**/docs
+scripts
+README.md
+docker-compose.yml
+*.log
